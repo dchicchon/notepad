@@ -1,0 +1,13 @@
+html {
+  background-color: black;
+  /* overflow: hidden; */
+}
+.paper {
+  width: -webkit-fill-available;
+  min-height: 100vh;
+  /* overflow: hidden; */
+  background-color: transparent;
+  outline: none;
+  border: none;
+  resize: none;
+}
