@@ -10,6 +10,7 @@
     "beforeBuildCommand": "npm run build"
   },
   "tauri": {
+    "macOSPrivateApi": true,
     "bundle": {
       "active": true,
       "targets": "all",
@@ -50,7 +51,25 @@
       "active": false
     },
     "allowlist": {
-      "all": true
+      "all": true,
+      "dialog": {
+        "all": true,
+        "open": true,
+        "save": true
+      },
+      "fs": {
+        "scope": {
+          "allow": [
+            "$APP/db/**",
+            "$DOWNLOAD/**",
+            "$RESOURCE/**",
+            "$DOCUMENT/**"
+          ],
+          "deny": [
+            "$APP/db/*.stronghold"
+          ]
+        }
+      }
     },
     "windows": [
       {
