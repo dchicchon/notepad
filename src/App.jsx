@@ -1,108 +1,130 @@
-import { useState, useEffect } from 'react'
+
+import React, { useState, useEffect, useRef } from 'react'
 import { appWindow } from '@tauri-apps/api/window'
 import { writeFile, readTextFile } from '@tauri-apps/api/fs';
 import { open, save } from '@tauri-apps/api/dialog';
-import hotkeys from "hotkeys-js";
+import hotkeys from 'hotkeys-js';
+import {
+  INCREASE_FONT,
+  DECREASE_FONT,
+  OPEN_FILE_HOTKEY,
+  SAVE_FILE_HOTKEY
+} from './utils/hotkeyMap'
 import './App.css'
 
-const OPEN_FILE_HOTKEY = 'ctrl+o, command+o';
-const SAVE_FILE_HOTKEY = 'ctrl+s, command+s';
-
-let selectedWindow = appWindow.label;
+const selectedWindow = appWindow.label;
 const windowMap = {
   [selectedWindow]: appWindow
 }
 
-const App = () => {
+function App() {
   const [ypadding, setYPadding] = useState(30);
   const [xpadding, setXPadding] = useState(25);
   const [fontSize, setFontSize] = useState(25);
-  const [backgroundColor, setBackgroundColor] = useState('#282c34')
-  const [color, setColor] = useState('white')
-  const [text, setText] = useState('')
-  const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' })
+  const [backgroundColor, setBackgroundColor] = useState('#282c34');
+  const [color, setColor] = useState('white');
+  const textRef = useRef()
+  // const fileRef = useRef({ path: null, name: 'Untitled' })
+  const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
+
+  useEffect(() => {
+    registerHotkeys();
+    setTitle(currentFile.name)
+    return unRegisterHotkeys
+  }, [currentFile])
+
+  const unRegisterHotkeys = () => hotkeys.unbind();
 
   const registerHotkeys = () => {
+    console.log('Register Hotkeys')
     // enable hotkeys for input/textarea
     // this runs every time a hotkey is pressed. We want to allow all so return true
-    hotkeys.filter = function (event) {
-      // console.log('hotkeys filter')
-      // console.log(event);
-      return true;
-    }
+    hotkeys.filter = (event) => true
+
     hotkeys(OPEN_FILE_HOTKEY, openFile)
     hotkeys(SAVE_FILE_HOTKEY, saveFile)
+    hotkeys(INCREASE_FONT, () => setFontSize(val => val + 1));
+    hotkeys(DECREASE_FONT, () => setFontSize(val => val - 1));
   }
 
   const setTitle = (title) => {
     windowMap[selectedWindow].setTitle(title)
   }
 
+  // maybe work on this more
   const saveFile = async () => {
-    let path = await save({
-      title: 'Save Text File',
-      filters: [{ name: currentFile.name, extensions: ['txt'] }],
-      defaultPath: currentFile.path ? currentFile.path : null
-    })
-    console.log(path)
-    if (!path) return;
-    let fileName = path.split('/').find(item => item.includes('.'))
-    let newFile = {
-      path,
-      text
-    }
-    writeFile(newFile)
-      .then(() => {
-        console.log("Wrote file successfully");
-        setCurrentFile({ path, name: fileName })
+    const { current: { value: text } } = textRef
+    if (text.length === 0) return
 
+    if (currentFile.path) {
+      console.log('Current file already exists, overwrite')
+      let newFile = {
+        path: currentFile.path,
+        contents: text
+      }
+      writeFile(newFile)
+        .then((result) => {
+          console.log('saved successfully')
+        }).catch((err) => {
+          console.error(err)
+        })
+    }
+    else {
+      console.log('CurrentFile path does not exist')
+      console.log(currentFile)
+      const path = await save({
+        title: 'Save Text File',
+        // filters: [{ name: 'untitled', extensions: ['txt'] }],
+        filters: [{ name: currentFile.name, extensions: ['txt'] }],
+        defaultPath: currentFile.path ? currentFile.path : null
       })
-      .catch(err => {
-        console.error(err);
-      })
+      if (!path) return;
+      const fileName = new RegExp(/([^\/]+)$/).exec(path)[0];
+      const newFile = {
+        path,
+        contents: text
+      }
+      writeFile(newFile)
+        .then((result) => {
+          setCurrentFile({ path: path, name: fileName })
+
+          console.log('saved successfully')
+        }).catch((err) => {
+          console.error(err)
+        })
+    }
 
   }
 
   const openFile = async () => {
-    // check if there is any text, if so ask the user if they want to save the current file
-    let path = await open({
+    const path = await open({
       title: 'Open Text File',
     })
-    console.log(path)
     if (!path) return;
-    let fileName = path.split('/').find(item => item.includes('.'))
-    let text = await readTextFile(path)
-    setCurrentFile({ path, name: fileName })
-    setText(text)
+    const fileName = new RegExp(/([^\/]+)$/).exec(path)[0];
+    const text = await readTextFile(path)
+    console.log(path);
+    console.log(fileName)
+    console.log(text)
+    setCurrentFile({ path: path, name: fileName })
+    textRef.current.value = text
   }
-
-  useEffect(() => {
-    setTitle(currentFile.name)
-  }, [currentFile])
-
-  useEffect(() => {
-    registerHotkeys();
-  }, [])
 
   return (
     <div>
       <textarea
-        className="paper"
+        className='paper'
         style={{
           color,
           backgroundColor,
           fontSize: `${fontSize}px`,
           padding: `${ypadding}px ${xpadding}px`,
         }}
+        ref={textRef}
         autoFocus={true}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      >
-      </textarea>
+      />
     </div>
   )
 }
-
-// use styles here later on? maybe
 
 export default App

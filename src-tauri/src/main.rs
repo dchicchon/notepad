@@ -1,16 +1,16 @@
-#![cfg_attr(
-  all(not(debug_assertions), target_os = "windows"),
-  windows_subsystem = "windows"
-)]
+// #![cfg_attr(
+//   all(not(debug_assertions), target_os = "windows"),
+//   windows_subsystem = "windows"
+// )]
 
 mod cmd;
 
 use tauri::{
-  api::dialog,
+  // api::dialog,
   api::dialog::FileDialogBuilder,
   CustomMenuItem,
   // GlobalShortcutManager,
-  Manager,
+  // Manager,
   Menu,
   MenuItem,
   RunEvent,
@@ -25,20 +25,6 @@ fn main() {
   let close = CustomMenuItem::new("close".to_string(), "Close");
   let quit = CustomMenuItem::new("quit".to_string(), "Quit");
 
-  // let tray_menu1 = SystemTrayMenu::new()
-  //   .add_item(CustomMenuItem::new("toggle", "Toggle"))
-  //   .add_item(CustomMenuItem::new("new", "New window"))
-  //   .add_item(CustomMenuItem::new("icon_1", "Tray Icon 1"))
-  //   .add_item(CustomMenuItem::new("icon_2", "Tray Icon 2"))
-  //   .add_item(CustomMenuItem::new("switch_menu", "Switch Menu"))
-  //   .add_item(CustomMenuItem::new("exit_app", "Quit"));
-  // let tray_menu2 = SystemTrayMenu::new()
-  //   .add_item(CustomMenuItem::new("toggle", "Toggle"))
-  //   .add_item(CustomMenuItem::new("new", "New window"))
-  //   .add_item(CustomMenuItem::new("switch_menu", "Switch Menu"))
-  //   .add_item(CustomMenuItem::new("exit_app", "Quit"));
-  // let is_menu1 = AtomicBool::new(true);
-
   let submenu = Submenu::new(
     "File",
     Menu::new()
@@ -47,6 +33,7 @@ fn main() {
       .add_item(close)
       .add_item(quit),
   );
+
   let menu = Menu::new()
     .add_native_item(MenuItem::Copy)
     .add_submenu(submenu);
@@ -89,7 +76,7 @@ fn main() {
 
   #[cfg(target_os = "macos")]
   // app.set_activation_policy(tauri::ActivationPolicy::Regular);
-  app.run(|app_handle, e| match e {
+  app.run(|_app_handle, e| match e {
     // Application is ready (triggered only once)
     RunEvent::Ready => {
       // let app_handle = app_handle.clone();
@@ -104,27 +91,6 @@ fn main() {
     }
 
     // Triggered when a window is trying to close
-    RunEvent::CloseRequested { label, api, .. } => {
-      let app_handle = app_handle.clone();
-      let window = app_handle.get_window(&label).unwrap();
-      // use the exposed close api, and prevent the event loop to close
-      api.prevent_close();
-      // ask the user if he wants to quit
-      dialog::ask(
-        Some(&window),
-        "Notepad",
-        "Are you sure that you want to close Notepad?",
-        move |answer| {
-          if answer {
-            // .close() cannot be called on the main thread
-            std::thread::spawn(move || {
-              app_handle.get_window(&label).unwrap().close().unwrap();
-            });
-          }
-        },
-      );
-    }
-
     // Keep the event loop running even if all windows are closed
     // This allow us to catch system tray events when there is no window
     RunEvent::ExitRequested { api, .. } => {
