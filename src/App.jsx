@@ -4,6 +4,9 @@ import { appWindow } from '@tauri-apps/api/window'
 import { writeFile, readTextFile } from '@tauri-apps/api/fs';
 import { open, save } from '@tauri-apps/api/dialog';
 import hotkeys from 'hotkeys-js';
+// import { emit, listen } from '@tauri-apps/api/event'
+import { invoke } from '@tauri-apps/api';
+
 import {
   INCREASE_FONT,
   DECREASE_FONT,
@@ -23,9 +26,21 @@ function App() {
   const [fontSize, setFontSize] = useState(25);
   const [backgroundColor, setBackgroundColor] = useState('#282c34');
   const [color, setColor] = useState('white');
-  const textRef = useRef()
+  // const textRef = useRef()
   // const fileRef = useRef({ path: null, name: 'Untitled' })
   const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
+  const [text, setText] = useState('');
+  // useEffect(async () => {
+  //   const unlisten = await listen('save', msg => {
+  //     console.log(msg)
+  //     console.log(textRef.current.value)
+  //     // emit('custom_command', {});
+  //     // invoke('custom_command', {})
+  //     // now send this back to the backend to save it using
+  //     // dialog builder?
+  //   })
+  //   return unlisten;
+  // }, [])
 
   useEffect(() => {
     registerHotkeys();
@@ -34,19 +49,16 @@ function App() {
   }, [currentFile])
 
   const unRegisterHotkeys = () => hotkeys.unbind();
-
   const registerHotkeys = () => {
-    console.log('Register Hotkeys')
     // enable hotkeys for input/textarea
     // this runs every time a hotkey is pressed. We want to allow all so return true
     hotkeys.filter = (event) => true
 
     hotkeys(OPEN_FILE_HOTKEY, openFile)
-    hotkeys(SAVE_FILE_HOTKEY, saveFile)
+    // hotkeys(SAVE_FILE_HOTKEY, saveFile)
     hotkeys(INCREASE_FONT, () => setFontSize(val => val + 1));
     hotkeys(DECREASE_FONT, () => setFontSize(val => val - 1));
   }
-
   const setTitle = (title) => {
     windowMap[selectedWindow].setTitle(title)
   }
@@ -110,6 +122,20 @@ function App() {
     textRef.current.value = text
   }
 
+  const updateText = async (event) => {
+    const text = event.target.value;
+    invoke('db_insert', {
+      key: 'text',
+      value: text,
+    }).then(response => {
+      setText(text);
+    })
+      .catch(err => {
+        console.log('error');
+        console.log(err);
+      })
+  }
+
   return (
     <div>
       <textarea
@@ -120,7 +146,9 @@ function App() {
           fontSize: `${fontSize}px`,
           padding: `${ypadding}px ${xpadding}px`,
         }}
-        ref={textRef}
+        value={text}
+        onChange={updateText}
+        // ref={textRef}
         autoFocus={true}
       />
     </div>
