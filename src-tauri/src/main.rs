@@ -33,7 +33,6 @@ fn main() {
   );
 
   let menu = Menu::new()
-    .add_native_item(MenuItem::Copy)
     .add_submenu(submenu);
 
   let app = tauri::Builder::default()

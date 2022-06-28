@@ -16,6 +16,9 @@ pub struct Database(pub Mutex<HashMap<String, String>>);
 
 #[tauri::command]
 pub fn db_insert(key: String, value: String, db: State<Database>) {
+  println!("Inserting item");
+  println!("Key: {}",&key);
+  println!("Value: {}",&value);
   db.0.lock().unwrap().insert(key,value);
 }
 

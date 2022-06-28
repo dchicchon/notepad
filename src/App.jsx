@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { appWindow } from '@tauri-apps/api/window'
 import { writeFile, readTextFile } from '@tauri-apps/api/fs';
 import { open, save } from '@tauri-apps/api/dialog';
@@ -10,8 +10,6 @@ import { invoke } from '@tauri-apps/api';
 import {
   INCREASE_FONT,
   DECREASE_FONT,
-  OPEN_FILE_HOTKEY,
-  SAVE_FILE_HOTKEY
 } from './utils/hotkeyMap'
 import './App.css'
 
@@ -31,17 +29,19 @@ function App() {
   const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
   const [text, setText] = useState('');
 
-  useEffect(async () => {
-    const unlisten = await listen('newFile', msg => {
-      console.log(msg)
-      let newFile = {
-        path: msg.payload.path,
-        name: msg.payload.name
-      }
-      updateFile(newFile);
-      updateText(msg.payload.text);
-    })
-    return unlisten;
+  useEffect(() => {
+    async function unlisten() {
+      await listen('newFile', msg => {
+        console.log(msg)
+        let newFile = {
+          path: msg.payload.path,
+          name: msg.payload.name
+        }
+        updateFile(newFile);
+        updateText(msg.payload.text);
+      })
+    }
+    unlisten();
   }, [])
 
   useEffect(() => {
@@ -139,8 +139,9 @@ function App() {
   const updateFile = async (file) => {
     invoke('db_insert', {
       key: 'file',
-      value: file,
+      value: file.path,
     }).then(response => {
+      setTitle(file.name);
       setCurrentFile(file);
     })
       .catch(err => {
