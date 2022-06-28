@@ -4,7 +4,7 @@ import { appWindow } from '@tauri-apps/api/window'
 import { writeFile, readTextFile } from '@tauri-apps/api/fs';
 import { open, save } from '@tauri-apps/api/dialog';
 import hotkeys from 'hotkeys-js';
-// import { emit, listen } from '@tauri-apps/api/event'
+import { emit, listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api';
 
 import {
@@ -30,17 +30,19 @@ function App() {
   // const fileRef = useRef({ path: null, name: 'Untitled' })
   const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
   const [text, setText] = useState('');
-  // useEffect(async () => {
-  //   const unlisten = await listen('save', msg => {
-  //     console.log(msg)
-  //     console.log(textRef.current.value)
-  //     // emit('custom_command', {});
-  //     // invoke('custom_command', {})
-  //     // now send this back to the backend to save it using
-  //     // dialog builder?
-  //   })
-  //   return unlisten;
-  // }, [])
+
+  useEffect(async () => {
+    const unlisten = await listen('newFile', msg => {
+      console.log(msg)
+      let newFile = {
+        path: msg.payload.path,
+        name: msg.payload.name
+      }
+      updateFile(newFile);
+      updateText(msg.payload.text);
+    })
+    return unlisten;
+  }, [])
 
   useEffect(() => {
     registerHotkeys();
@@ -54,7 +56,7 @@ function App() {
     // this runs every time a hotkey is pressed. We want to allow all so return true
     hotkeys.filter = (event) => true
 
-    hotkeys(OPEN_FILE_HOTKEY, openFile)
+    // hotkeys(OPEN_FILE_HOTKEY, openFile)
     // hotkeys(SAVE_FILE_HOTKEY, saveFile)
     hotkeys(INCREASE_FONT, () => setFontSize(val => val + 1));
     hotkeys(DECREASE_FONT, () => setFontSize(val => val - 1));
@@ -122,13 +124,24 @@ function App() {
     textRef.current.value = text
   }
 
-  const updateText = async (event) => {
-    const text = event.target.value;
+  const updateText = async (text) => {
     invoke('db_insert', {
       key: 'text',
       value: text,
     }).then(response => {
       setText(text);
+    })
+      .catch(err => {
+        console.log('error');
+        console.log(err);
+      })
+  }
+  const updateFile = async (file) => {
+    invoke('db_insert', {
+      key: 'file',
+      value: file,
+    }).then(response => {
+      setCurrentFile(file);
     })
       .catch(err => {
         console.log('error');
@@ -147,8 +160,7 @@ function App() {
           padding: `${ypadding}px ${xpadding}px`,
         }}
         value={text}
-        onChange={updateText}
-        // ref={textRef}
+        onChange={(e) => updateText(e.target.value)}
         autoFocus={true}
       />
     </div>
