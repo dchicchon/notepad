@@ -31,14 +31,18 @@ function App() {
 
   useEffect(() => {
     async function unlisten() {
-      await listen('newFile', msg => {
+      await listen('state_change', msg => {
         console.log(msg)
-        let newFile = {
-          path: msg.payload.path,
-          name: msg.payload.name
+        // check all of the items in the msg.
+        if (!msg.payload) return;
+        if (msg.payload.text) updateText(msg.payload.text);
+        if (msg.payload.name) {
+          let newFile = {
+            path: msg.payload.path,
+            name: msg.payload.name
+          }
+          updateFile(newFile);
         }
-        updateFile(newFile);
-        updateText(msg.payload.text);
       })
     }
     unlisten();
@@ -55,7 +59,6 @@ function App() {
     // enable hotkeys for input/textarea
     // this runs every time a hotkey is pressed. We want to allow all so return true
     hotkeys.filter = (event) => true
-
     // hotkeys(OPEN_FILE_HOTKEY, openFile)
     // hotkeys(SAVE_FILE_HOTKEY, saveFile)
     hotkeys(INCREASE_FONT, () => setFontSize(val => val + 1));
@@ -63,65 +66,6 @@ function App() {
   }
   const setTitle = (title) => {
     windowMap[selectedWindow].setTitle(title)
-  }
-
-  // maybe work on this more
-  const saveFile = async () => {
-    const { current: { value: text } } = textRef
-    if (text.length === 0) return
-
-    if (currentFile.path) {
-      console.log('Current file already exists, overwrite')
-      let newFile = {
-        path: currentFile.path,
-        contents: text
-      }
-      writeFile(newFile)
-        .then((result) => {
-          console.log('saved successfully')
-        }).catch((err) => {
-          console.error(err)
-        })
-    }
-    else {
-      console.log('CurrentFile path does not exist')
-      console.log(currentFile)
-      const path = await save({
-        title: 'Save Text File',
-        // filters: [{ name: 'untitled', extensions: ['txt'] }],
-        filters: [{ name: currentFile.name, extensions: ['txt'] }],
-        defaultPath: currentFile.path ? currentFile.path : null
-      })
-      if (!path) return;
-      const fileName = new RegExp(/([^\/]+)$/).exec(path)[0];
-      const newFile = {
-        path,
-        contents: text
-      }
-      writeFile(newFile)
-        .then((result) => {
-          setCurrentFile({ path: path, name: fileName })
-
-          console.log('saved successfully')
-        }).catch((err) => {
-          console.error(err)
-        })
-    }
-
-  }
-
-  const openFile = async () => {
-    const path = await open({
-      title: 'Open Text File',
-    })
-    if (!path) return;
-    const fileName = new RegExp(/([^\/]+)$/).exec(path)[0];
-    const text = await readTextFile(path)
-    console.log(path);
-    console.log(fileName)
-    console.log(text)
-    setCurrentFile({ path: path, name: fileName })
-    textRef.current.value = text
   }
 
   const updateText = async (text) => {

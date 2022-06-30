@@ -3,13 +3,15 @@
 //   windows_subsystem = "windows"
 // )]
 
-mod cmd;
-mod dialog;
+mod modules;
 
-use tauri::{CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu};
+use modules::{
+  cmd::{db_insert, db_read},
+  database::Database,
+  dialog::{open_file, save_file},
+};
 
-use cmd::{db_insert, db_read, Database};
-use dialog::{open_file, save_file};
+use tauri::{CustomMenuItem, GlobalShortcutManager, Manager, Menu, RunEvent, Submenu};
 
 // the payload type must implement `Serialize` and `Clone`.
 #[derive(Clone, serde::Serialize)]
@@ -32,8 +34,7 @@ fn main() {
       .add_item(quit),
   );
 
-  let menu = Menu::new()
-    .add_submenu(submenu);
+  let menu = Menu::new().add_submenu(submenu);
 
   let app = tauri::Builder::default()
     .manage(Database(Default::default()))
@@ -41,7 +42,9 @@ fn main() {
     .menu(menu)
     .on_menu_event(|event| match event.menu_item_id() {
       "open" => {
-        open_file(event);
+        // get handle
+        let handle = event.window().app_handle();
+        open_file(&handle);
       }
       "save" => {
         let handle = event.window().app_handle();
@@ -66,12 +69,20 @@ fn main() {
   app.run(|app_handle, e| match e {
     // Application is ready (triggered only once)
     RunEvent::Ready => {
-      let app_handle = app_handle.clone();
+      let handle = app_handle.clone();
+      let handle2 = app_handle.clone();
       app_handle
         .global_shortcut_manager()
         .register("CmdOrCtrl+S", move || {
           println!("Hotkey executed");
-          save_file(&app_handle);
+          // only open save dialog if there is no file path yet
+          save_file(&handle);
+        })
+        .unwrap();
+      app_handle
+        .global_shortcut_manager()
+        .register("CmdOrCtrl+O", move || {
+          open_file(&handle2);
         })
         .unwrap();
     }

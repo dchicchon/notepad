@@ -1,24 +1,14 @@
 
-
 use tauri::{ 
   State
 };
 
-use std::{
-  collections::HashMap,
-  sync::{
-  Mutex
-  },
-};
-
-#[derive(Default)]
-pub struct Database(pub Mutex<HashMap<String, String>>);
+use crate::Database;
 
 #[tauri::command]
 pub fn db_insert(key: String, value: String, db: State<Database>) {
-  println!("Inserting item");
-  println!("Key: {}",&key);
-  println!("Value: {}",&value);
+  // println!("Key: {}", key);
+  // println!("Value: {}", value);
   db.0.lock().unwrap().insert(key,value);
 }
 
