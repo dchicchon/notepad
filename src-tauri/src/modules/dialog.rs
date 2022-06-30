@@ -46,7 +46,7 @@ pub fn save_file(handle: &AppHandle) {
     let state: State<Database> = handle.state();
     let path = state.0.lock().unwrap().get("file").cloned();
     let unwrapped_path = get_path(path);
-    println!("The state path: {}", unwrapped_path);
+    // println!("The state path: {:?}", unwrapped_path);
     // if path is not empty
     if unwrapped_path != "" {
         println!("There is a path buf!");
