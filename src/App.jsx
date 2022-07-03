@@ -1,10 +1,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { appWindow } from '@tauri-apps/api/window'
-import { writeFile, readTextFile } from '@tauri-apps/api/fs';
-import { open, save } from '@tauri-apps/api/dialog';
 import hotkeys from 'hotkeys-js';
-import { emit, listen } from '@tauri-apps/api/event'
+import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api';
 
 import {
@@ -19,13 +17,11 @@ const windowMap = {
 }
 
 function App() {
-  const [ypadding, setYPadding] = useState(30);
+  const [ypadding, setYPadding] = useState(25);
   const [xpadding, setXPadding] = useState(25);
   const [fontSize, setFontSize] = useState(25);
   const [backgroundColor, setBackgroundColor] = useState('#282c34');
   const [color, setColor] = useState('white');
-  // const textRef = useRef()
-  // const fileRef = useRef({ path: null, name: 'Untitled' })
   const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
   const [text, setText] = useState('');
 
@@ -95,20 +91,18 @@ function App() {
   }
 
   return (
-    <div>
-      <textarea
-        className='paper'
-        style={{
-          color,
-          backgroundColor,
-          fontSize: `${fontSize}px`,
-          padding: `${ypadding}px ${xpadding}px`,
-        }}
-        value={text}
-        onChange={(e) => updateText(e.target.value)}
-        autoFocus={true}
-      />
-    </div>
+    <textarea
+      className='paper'
+      style={{
+        color,
+        backgroundColor,
+        fontSize: `${fontSize}px`,
+        padding: `${ypadding}px ${xpadding}px`,
+      }}
+      value={text}
+      onChange={(e) => updateText(e.target.value)}
+      autoFocus={true}
+    />
   )
 }
 
