@@ -71,9 +71,11 @@
     },
     "windows": [
       {
+        "label":"main",
+        "url":"src/main/index.html",
         "title": "Notepad",
-        "width": 800,
-        "height": 600,
+        "width": 600,
+        "height": 500,
         "resizable": true,
         "fullscreen": false
       }

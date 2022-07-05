@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fs::File, io::Write, path::PathBuf};
 
 use tauri::{
+    window::{WindowBuilder},
     api::{dialog::FileDialogBuilder, file::read_string},
     AppHandle, Manager, State,
 };
@@ -89,4 +90,20 @@ pub fn save_file(handle: &AppHandle) {
             _ => {}
         });
     }
+}
+
+pub fn open_preferences(handle: &AppHandle) {
+    println!("Open preferences");
+
+    let window = WindowBuilder::new(
+        handle, 
+        "preferences", 
+        tauri::WindowUrl::App("src/preferences/index.html".into())
+    )
+    .center()
+    .max_inner_size(300.0, 250.0)
+    .always_on_top(true)
+    .resizable(false)
+    .build()
+    .unwrap();
 }

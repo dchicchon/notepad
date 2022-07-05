@@ -81,7 +81,6 @@ function App() {
       key: 'file',
       value: file.path,
     }).then(response => {
-      setTitle(file.name);
       setCurrentFile(file);
     })
       .catch(err => {
