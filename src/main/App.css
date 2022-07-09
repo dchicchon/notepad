@@ -8,13 +8,12 @@ html {
   position: absolute;
   top: 0;
   bottom: 0;
-  
   width: -webkit-fill-available;
   height: auto;
   /* min-height: 100vh; */
 
   /* overflow: hidden; */
-  background-color: transparent;
+  /* background-color: transparent; */
   outline: none;
   border: none;
   resize: none;
