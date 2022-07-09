@@ -13,6 +13,10 @@ use modules::{
 
 use tauri::{CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu};
 
+use tauri_plugin_store::{PluginBuilder, StoreBuilder};
+
+// use std::{fs::File, io::Read};
+
 // the payload type must implement `Serialize` and `Clone`.
 #[derive(Clone, serde::Serialize)]
 struct Payload {
@@ -20,31 +24,32 @@ struct Payload {
 }
 
 fn main() {
-  // let context = tauri::generate_context!();
+  // let mut test_file = File::open("preferences")?;
+  // let mut buffer = [0; 10];
+  // let n = test_file.read(&mut buffer)?;
+  // println!("The bytes: {:?}", &buffer[..n]);
+
+  // maybe we can check the .settings file first in order to get the current values
+  // let settings = StoreBuilder::new(".settings.bin".parse().unwrap()).build();
 
   let preferences = CustomMenuItem::new("preferences".to_string(), "Preferences");
   let open = CustomMenuItem::new("open".to_string(), "Open...");
   let save = CustomMenuItem::new("save".to_string(), "Save As...");
-  
+
   let submenu1 = Submenu::new(
     "Notepad",
     Menu::new()
       .add_item(preferences)
-      .add_native_item(MenuItem::Quit)
+      .add_native_item(MenuItem::Quit),
   );
-  let submenu2 = Submenu::new(
-    "File",
-    Menu::new()
-      .add_item(open)
-      .add_item(save)
-  );
+  let submenu2 = Submenu::new("File", Menu::new().add_item(open).add_item(save));
 
   let menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2);
-
 
   // let native_menu = tauri::Menu::os_default("Notepad").add_submenu(submenu);
 
   let app = tauri::Builder::default()
+    .plugin(PluginBuilder::default().build())
     .menu(menu)
     .manage(Database(Default::default()))
     .invoke_handler(tauri::generate_handler![db_insert, db_read])

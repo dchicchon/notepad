@@ -1,12 +1,18 @@
 use std::{collections::HashMap, fs::File, io::Write, path::PathBuf};
 
 use tauri::{
-    window::{WindowBuilder},
     api::{dialog::FileDialogBuilder, file::read_string},
+    window::WindowBuilder,
     AppHandle, Manager, State,
 };
 
 use crate::Database;
+
+// the payload type must implement `Serialize` and `Clone`.
+#[derive(Clone, serde::Serialize)]
+struct Payload {
+    message: String,
+}
 
 // if there are no windows, we should make a new one!
 pub fn open_file(handle: &AppHandle) {
@@ -28,7 +34,7 @@ pub fn open_file(handle: &AppHandle) {
                     data.insert("path".to_string(), file_path);
                     data.insert("name".to_string(), file_name);
                     data.insert("text".to_string(), value);
-                    new_handle.emit_all("state_change", data); // TODO: check for errors
+                    let _result = new_handle.emit_all("state_change", data); // TODO: check for errors
                 }
                 _ => {}
             };
@@ -64,41 +70,46 @@ pub fn save_file(handle: &AppHandle) {
     } else {
         // println!("There is no path, set one!");
         FileDialogBuilder::new()
-        .add_filter("Text", &["txt"])
-        .save_file(move |path_buf| match path_buf {
-            Some(p) => {
-                // println!("the path: {:?}", p);
-                let path = p.clone();
-                let name_path = path.clone();
+            .add_filter("Text", &["txt"])
+            .save_file(move |path_buf| match path_buf {
+                Some(p) => {
+                    // println!("the path: {:?}", p);
+                    let path = p.clone();
+                    let name_path = path.clone();
 
-                let file_name = name_path.file_name().unwrap().to_str().unwrap().to_string();
-                let file_path = path.into_os_string().into_string().unwrap().to_string();
+                    let file_name = name_path.file_name().unwrap().to_str().unwrap().to_string();
+                    let file_path = path.into_os_string().into_string().unwrap().to_string();
 
-                // println!("New file path: {}", file_path);
-                let state: State<Database> = app_handle.state();
-                let text = state.0.lock().unwrap().get("text").cloned().unwrap();
-                let text_bytes = text.as_bytes();
+                    // println!("New file path: {}", file_path);
+                    let state: State<Database> = app_handle.state();
+                    let text = state.0.lock().unwrap().get("text").cloned().unwrap();
+                    let text_bytes = text.as_bytes();
 
-                let mut file = File::create(&file_path).unwrap();
-                let _result = file.write_all(&text_bytes);
+                    let mut file = File::create(&file_path).unwrap();
+                    let _result = file.write_all(&text_bytes);
 
-                let mut data = HashMap::new();
-                data.insert("path".to_string(), file_path);
-                data.insert("name".to_string(), file_name);
-                app_handle.emit_all("state_change", data); // TODO: check for errors
-            }
-            _ => {}
-        });
+                    let mut data = HashMap::new();
+                    data.insert("path".to_string(), file_path);
+                    data.insert("name".to_string(), file_name);
+                    let _result = app_handle.emit_all("state_change", data); // TODO: check for errors
+                }
+                _ => {}
+            });
     }
 }
+
+// Create a new window? Or should we overwrite the current one (if there is one)
+pub fn new_file() {}
 
 pub fn open_preferences(handle: &AppHandle) {
     println!("Open preferences");
 
-    let window = WindowBuilder::new(
-        handle, 
-        "preferences", 
-        tauri::WindowUrl::App("src/preferences/index.html".into())
+    let main_window = handle.get_window("main").unwrap();
+
+    let preferences_window = WindowBuilder::new(
+        handle,
+        "preferences",
+        tauri::WindowUrl::App("src/preferences/index.html".into()),
     )
     .center()
     .max_inner_size(300.0, 250.0)
@@ -106,4 +117,13 @@ pub fn open_preferences(handle: &AppHandle) {
     .resizable(false)
     .build()
     .unwrap();
+
+    let id = preferences_window.listen("update-setting", move |event| {
+        println!("Got event from preferences window, emit to main");
+        let payload = event.payload().unwrap(); // turn this into a hashmap?
+        println!("Payload: {:?}", payload);
+        let mut data = HashMap::new();
+        data.insert("setting", payload);
+        let _result = main_window.emit("state_change", data);
+    });
 }
