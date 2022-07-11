@@ -8,12 +8,14 @@ mod modules;
 use modules::{
   cmd::{db_insert, db_read},
   database::Database,
-  dialog::{open_file, open_preferences, save_file},
+  dialog::{new_file, open_file, open_preferences, save_file},
 };
 
-use tauri::{CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu};
+use tauri::{
+  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu, WindowBuilder,
+};
 
-use tauri_plugin_store::{PluginBuilder, StoreBuilder};
+use tauri_plugin_store::PluginBuilder;
 
 // use std::{fs::File, io::Read};
 
@@ -24,16 +26,9 @@ struct Payload {
 }
 
 fn main() {
-  // let mut test_file = File::open("preferences")?;
-  // let mut buffer = [0; 10];
-  // let n = test_file.read(&mut buffer)?;
-  // println!("The bytes: {:?}", &buffer[..n]);
-
-  // maybe we can check the .settings file first in order to get the current values
-  // let settings = StoreBuilder::new(".settings.bin".parse().unwrap()).build();
-
   let preferences = CustomMenuItem::new("preferences".to_string(), "Preferences");
   let open = CustomMenuItem::new("open".to_string(), "Open...");
+  let new = CustomMenuItem::new("new".to_string(), "New...");
   let save = CustomMenuItem::new("save".to_string(), "Save As...");
 
   let submenu1 = Submenu::new(
@@ -42,15 +37,25 @@ fn main() {
       .add_item(preferences)
       .add_native_item(MenuItem::Quit),
   );
-  let submenu2 = Submenu::new("File", Menu::new().add_item(open).add_item(save));
+  let submenu2 = Submenu::new(
+    "File",
+    Menu::new().add_item(open).add_item(save).add_item(new),
+  );
 
   let menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2);
 
-  // let native_menu = tauri::Menu::os_default("Notepad").add_submenu(submenu);
-
   let app = tauri::Builder::default()
     .plugin(PluginBuilder::default().build())
-    .menu(menu)
+    .setup(|app| {
+      WindowBuilder::new(
+        app,
+        "main",
+        tauri::WindowUrl::App("src/main/index.html".into()),
+      )
+      .menu(menu)
+      .build()?;
+      Ok(())
+    })
     .manage(Database(Default::default()))
     .invoke_handler(tauri::generate_handler![db_insert, db_read])
     .on_menu_event(|event| match event.menu_item_id() {
@@ -67,10 +72,17 @@ fn main() {
         let handle = event.window().app_handle();
         save_file(&handle);
       }
+      "new" => {
+        println!("New menu item selected");
+        let handle = event.window().app_handle();
+        new_file(&handle);
+      }
       _ => {}
     })
     .build(tauri::generate_context!())
-    .expect("error while building tauri application");
+    .expect("error with app!");
+
+  // app.run(ctx).expect("error while running tauri application");
 
   app.run(|app_handle, e| match e {
     // Application is ready (triggered only once)
@@ -106,5 +118,5 @@ fn main() {
       api.prevent_exit();
     }
     _ => {}
-  });
+  })
 }
