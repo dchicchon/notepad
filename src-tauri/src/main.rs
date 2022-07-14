@@ -3,6 +3,8 @@
 //   windows_subsystem = "windows"
 // )]
 
+use std::env;
+
 mod modules;
 
 use modules::{
@@ -12,7 +14,8 @@ use modules::{
 };
 
 use tauri::{
-  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu, WindowBuilder,
+  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu, Window,
+  WindowBuilder, WindowEvent,
 };
 
 use tauri_plugin_store::PluginBuilder;
@@ -26,6 +29,8 @@ struct Payload {
 }
 
 fn main() {
+  env::set_var("RUST_BACKTRACE", "1");
+
   let preferences = CustomMenuItem::new("preferences".to_string(), "Preferences");
   let open = CustomMenuItem::new("open".to_string(), "Open...");
   let new = CustomMenuItem::new("new".to_string(), "New...");
@@ -42,23 +47,54 @@ fn main() {
     Menu::new().add_item(open).add_item(save).add_item(new),
   );
 
-  let menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2);
-
+  let windows_menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2);
+  let mac_menu = windows_menu.clone();
+  #[cfg(target_os = "windows")]
   let app = tauri::Builder::default()
     .plugin(PluginBuilder::default().build())
     .setup(|app| {
-      WindowBuilder::new(
+      let window = WindowBuilder::new(
         app,
         "main",
         tauri::WindowUrl::App("src/main/index.html".into()),
       )
-      .menu(menu)
+      .menu(windows_menu)
       .build()?;
+
+      let window_2 = window.clone();
+      window.on_menu_event(move |event| match event.menu_item_id() {
+        "preferences" => {
+          let handle = window_2.app_handle();
+          open_preferences(&handle);
+        }
+        "open" => {
+          // get handle
+          let handle = window_2.app_handle();
+          open_file(&handle);
+        }
+        "save" => {
+          let handle = window_2.app_handle();
+          save_file(&handle);
+        }
+        "new" => {
+          println!("New menu item selected");
+          let handle = window_2.app_handle();
+          new_file(&handle);
+        }
+        _ => {}
+      });
       Ok(())
     })
     .manage(Database(Default::default()))
     .invoke_handler(tauri::generate_handler![db_insert, db_read])
-    .on_menu_event(|event| match event.menu_item_id() {
+    .build(tauri::generate_context!())
+    .expect("error with app!");
+
+  #[cfg(target_os = "macos")]
+  let app = tauri::Builder::default()
+    .plugin(PluginBuilder::default().build())
+    .menu(mac_menu)
+    .on_menu_event(move |event| match event.menu_item_id() {
       "preferences" => {
         let handle = event.window().app_handle();
         open_preferences(&handle);
@@ -79,10 +115,19 @@ fn main() {
       }
       _ => {}
     })
+    .setup(|app| {
+      let _window = WindowBuilder::new(
+        app,
+        "main",
+        tauri::WindowUrl::App("src/main/index.html".into()),
+      )
+      .build();
+      Ok(())
+    })
+    .manage(Database(Default::default()))
+    .invoke_handler(tauri::generate_handler![db_insert, db_read])
     .build(tauri::generate_context!())
     .expect("error with app!");
-
-  // app.run(ctx).expect("error while running tauri application");
 
   app.run(|app_handle, e| match e {
     // Application is ready (triggered only once)
@@ -105,16 +150,24 @@ fn main() {
         .unwrap();
     }
 
-    // Triggered when a window is trying to close
-    // Keep the event loop running even if all windows are closed
-    // This allow us to catch system tray events when there is no window
-    #[cfg(target_os = "windows")]
-    RunEvent::ExitRequested { api, .. } => {
-      println!("App is exiting");
+    RunEvent::WindowEvent {
+      label,
+      event: WindowEvent::CloseRequested { api, .. },
+      ..
+    } => {
+      #[cfg(target_os = "macos")]
+      println!("Label type: {}", label);
+      if label == "main" {
+        let window = app_handle.get_window("main").unwrap();
+        api.prevent_close();
+        window.hide().unwrap();
+      }
     }
-    #[cfg(target_os = "macos")]
+
     RunEvent::ExitRequested { api, .. } => {
       println!("App is exiting");
+      #[cfg(target_os = "macos")]
+      println!("Preventing exit");
       api.prevent_exit();
     }
     _ => {}

@@ -1,8 +1,9 @@
 use std::{collections::HashMap, fs::File, io::Write, path::PathBuf};
 
 use tauri::{
+    Menu,
     api::{dialog::FileDialogBuilder, file::read_string},
-    window::{Window, WindowBuilder},
+    window::WindowBuilder,
     AppHandle, Manager, State,
 };
 
@@ -45,15 +46,6 @@ fn get_path(option: Option<String>) -> String {
     match option {
         Some(inner) => inner,
         None => String::from(""),
-    }
-}
-
-fn main_window_exists(handle: &AppHandle) -> bool {
-    println!("Check if main window exists");
-    let main_window = handle.get_window("main");
-    match main_window {
-        Some(_window) => true,
-        None => false
     }
 }
 
@@ -107,34 +99,15 @@ pub fn save_file(handle: &AppHandle) {
     }
 }
 
-// Create a new window? Or should we overwrite the current one (if there is one)
+// somehow, we should check if the main window is hidden?
 pub fn new_file(handle: &AppHandle) {
-    println!("New File");
-    if main_window_exists(handle) {
-        println!("Main window exists!");
-        let mut data = HashMap::new();
-        data.insert("path".to_string(), "");
-        data.insert("name".to_string(), "Untitled");
-        data.insert("text".to_string(), " ");
-        // somehow check if theres a window, if not, lets make a new one
-        let _result = handle.emit_all("state_change", data); // TODO: check for errors
-    } else {
-        println!("Main window does not exist, create a new one");
-        // create a new main window
-        WindowBuilder::new(
-            handle,
-            "main",
-            tauri::WindowUrl::App("src/main/index.html".into())
-        );
-        let main_window = handle.get_window("main").unwrap();
-        let mut data = HashMap::new();
-        data.insert("path".to_string(), "");
-        data.insert("name".to_string(), "Untitled");
-        data.insert("text".to_string(), " ");
-        // somehow check if theres a window, if not, lets make a new one
-        let _result = main_window.emit("state_change", data); // TODO: check for errors
-    }
-
+    let mut data = HashMap::new();
+    data.insert("path".to_string(), "");
+    data.insert("name".to_string(), "Untitled");
+    data.insert("text".to_string(), " ");
+    let main_window = handle.get_window("main").unwrap();
+    main_window.show().unwrap();
+    let _result = handle.emit_all("state_change", data);
 }
 
 pub fn open_preferences(handle: &AppHandle) {
@@ -142,18 +115,20 @@ pub fn open_preferences(handle: &AppHandle) {
 
     let main_window = handle.get_window("main").unwrap();
 
-    // how to make sure this wondow does not have menu?
+    // how to make sure this window does not have menu?
     let preferences_window = WindowBuilder::new(
         handle,
         "preferences",
         tauri::WindowUrl::App("src/preferences/index.html".into()),
     )
-     .center()
+    .center()
     .max_inner_size(300.0, 250.0)
     .always_on_top(true)
     .resizable(false)
     .build()
     .unwrap();
+
+    // make sure theres no menu for preferences?
 
     let _id = preferences_window.listen("update-setting", move |event| {
         println!("Got event from preferences window, emit to main");

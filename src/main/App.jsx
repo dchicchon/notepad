@@ -111,12 +111,11 @@ function App() {
       })
   }
   const updateFile = async (file) => {
+    setCurrentFile(file);
+    setTitle(file.name)
     invoke('db_insert', {
       key: 'file',
       value: file.path,
-    }).then(response => {
-      setCurrentFile(file);
-      setTitle(file.name)
     })
       .catch(err => {
         console.log('error');
