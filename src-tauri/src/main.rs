@@ -1,7 +1,7 @@
-// #![cfg_attr(
-//   all(not(debug_assertions), target_os = "windows"),
-//   windows_subsystem = "windows"
-// )]
+#![cfg_attr(
+  all(not(debug_assertions), target_os = "windows"),
+  windows_subsystem = "windows"
+)]
 
 use std::env;
 
@@ -50,7 +50,46 @@ fn main() {
   );
 
   let windows_menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2);
+  #[cfg(target_os = "macos")]
   let mac_menu = windows_menu.clone();
+  #[cfg(target_os = "macos")]
+  let app = tauri::Builder::default()
+    .plugin(PluginBuilder::default().build())
+    .menu(mac_menu)
+    .on_menu_event(move |event| match event.menu_item_id() {
+      "preferences" => {
+        let handle = event.window().app_handle();
+        open_preferences(&handle);
+      }
+      "open" => {
+        // get handle
+        let handle = event.window().app_handle();
+        open_file(&handle);
+      }
+      "save" => {
+        let handle = event.window().app_handle();
+        save_file(&handle);
+      }
+      "new" => {
+        println!("New menu item selected");
+        let handle = event.window().app_handle();
+        new_file(&handle);
+      }
+      _ => {}
+    })
+    .setup(|app| {
+      let _window = WindowBuilder::new(
+        app,
+        "main",
+        tauri::WindowUrl::App("src/main/index.html".into()),
+      )
+      .build();
+      Ok(())
+    })
+    .manage(Database(Default::default()))
+    .invoke_handler(tauri::generate_handler![db_insert, db_read])
+    .build(tauri::generate_context!())
+    .expect("error with app!");
   #[cfg(target_os = "windows")]
   let app = tauri::Builder::default()
     .plugin(PluginBuilder::default().build())
@@ -92,44 +131,7 @@ fn main() {
     .build(tauri::generate_context!())
     .expect("error with app!");
 
-  #[cfg(target_os = "macos")]
-  let app = tauri::Builder::default()
-    .plugin(PluginBuilder::default().build())
-    .menu(mac_menu)
-    .on_menu_event(move |event| match event.menu_item_id() {
-      "preferences" => {
-        let handle = event.window().app_handle();
-        open_preferences(&handle);
-      }
-      "open" => {
-        // get handle
-        let handle = event.window().app_handle();
-        open_file(&handle);
-      }
-      "save" => {
-        let handle = event.window().app_handle();
-        save_file(&handle);
-      }
-      "new" => {
-        println!("New menu item selected");
-        let handle = event.window().app_handle();
-        new_file(&handle);
-      }
-      _ => {}
-    })
-    .setup(|app| {
-      let _window = WindowBuilder::new(
-        app,
-        "main",
-        tauri::WindowUrl::App("src/main/index.html".into()),
-      )
-      .build();
-      Ok(())
-    })
-    .manage(Database(Default::default()))
-    .invoke_handler(tauri::generate_handler![db_insert, db_read])
-    .build(tauri::generate_context!())
-    .expect("error with app!");
+ 
 
   app.run(|app_handle, e| match e {
     // Application is ready (triggered only once)
@@ -154,7 +156,7 @@ fn main() {
 
     RunEvent::WindowEvent {
       label,
-      event: WindowEvent::CloseRequested { api, .. },
+      event: WindowEvent::CloseRequested { api:_, .. },
       ..
     } => {
       println!("Label type: {}", label);
@@ -166,7 +168,7 @@ fn main() {
       }
     }
 
-    RunEvent::ExitRequested { api, .. } => {
+    RunEvent::ExitRequested { api:_, .. } => {
       println!("App is exiting");
       #[cfg(target_os = "macos")]
       api.prevent_exit();
