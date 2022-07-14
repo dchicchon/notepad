@@ -14,7 +14,7 @@ use modules::{
 };
 
 use tauri::{
-  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu, Window,
+  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu,
   WindowBuilder, WindowEvent,
 };
 
@@ -40,7 +40,9 @@ fn main() {
     "Notepad",
     Menu::new()
       .add_item(preferences)
-      .add_native_item(MenuItem::Quit),
+      .add_native_item(MenuItem::Quit)
+      .add_native_item(MenuItem::Copy)
+      .add_native_item(MenuItem::Paste),
   );
   let submenu2 = Submenu::new(
     "File",
