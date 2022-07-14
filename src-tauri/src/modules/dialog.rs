@@ -1,7 +1,6 @@
 use std::{collections::HashMap, fs::File, io::Write, path::PathBuf};
 
 use tauri::{
-    Menu,
     api::{dialog::FileDialogBuilder, file::read_string},
     window::WindowBuilder,
     AppHandle, Manager, State,
@@ -110,11 +109,22 @@ pub fn new_file(handle: &AppHandle) {
     let _result = handle.emit_all("state_change", data);
 }
 
+fn window_exists(label: &str, handle: &AppHandle) -> bool {
+    let window = handle.get_window(label);
+    match window {
+        Some(_window) => true,
+        None => false
+    }
+}
+
 pub fn open_preferences(handle: &AppHandle) {
     println!("Open preferences");
 
     let main_window = handle.get_window("main").unwrap();
-
+    let test_handle = handle.clone();
+    if window_exists("preferences", &test_handle){
+        return;
+    };
     // how to make sure this window does not have menu?
     let preferences_window = WindowBuilder::new(
         handle,
@@ -122,8 +132,9 @@ pub fn open_preferences(handle: &AppHandle) {
         tauri::WindowUrl::App("src/preferences/index.html".into()),
     )
     .center()
+    .inner_size(300.0, 250.0)
     .max_inner_size(300.0, 250.0)
-    .always_on_top(true)
+    .always_on_top(true) 
     .resizable(false)
     .build()
     .unwrap();

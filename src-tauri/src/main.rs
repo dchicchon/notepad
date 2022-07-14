@@ -155,8 +155,8 @@ fn main() {
       event: WindowEvent::CloseRequested { api, .. },
       ..
     } => {
-      #[cfg(target_os = "macos")]
       println!("Label type: {}", label);
+      #[cfg(target_os = "macos")]
       if label == "main" {
         let window = app_handle.get_window("main").unwrap();
         api.prevent_close();
@@ -167,7 +167,6 @@ fn main() {
     RunEvent::ExitRequested { api, .. } => {
       println!("App is exiting");
       #[cfg(target_os = "macos")]
-      println!("Preventing exit");
       api.prevent_exit();
     }
     _ => {}
