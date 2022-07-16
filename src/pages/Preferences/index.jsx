@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { appWindow } from '@tauri-apps/api/window';
 import { emit } from '@tauri-apps/api/event';
-import { getKeyVal, setKeyVal } from '../utils';
-import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../utils/keys';
-import './App.css'
+import { getKeyVal, setKeyVal } from '../../utils/store';
+import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../../utils/keys';
+import './Preferences.css'
 import { invoke } from '@tauri-apps/api';
 
 

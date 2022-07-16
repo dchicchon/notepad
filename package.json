@@ -4,9 +4,8 @@
   "version": "0.0.0",
   "scripts": {
     "updateDeps": "ncu -u",
-    "dev": "vite dev",
-    "browser-build": "vite build --mode browser-build",
-    "build": "vite build --mode production",
+    "dev": "vite",
+    "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
