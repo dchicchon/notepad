@@ -6,8 +6,25 @@ import { resolve } from 'path'
 export default defineConfig(({ command, mode }) => {
   console.log('Command:', command);
   console.log('Mode:', mode);
+  if (mode === 'browser-build') {
+    return {
+      base: '/notepad/',
+      build: {
+        rollupOptions: {
+          input: {
+            index: resolve(__dirname, 'index.html'),
+            notepad: resolve(__dirname, 'notepad.html'),
+            preferences: resolve(__dirname, 'preferences.html')
+          },
+          output: {
+            dir: "browser-build"
+          }
+        },
+      },
+      plugins: [react()],
+    }
+  }
   return {
-    base: mode === "browser-build" ? "/notepad/" : "/",
     server: {
       port: 3000
     },
