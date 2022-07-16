@@ -4,7 +4,7 @@
 set -e
 
 # build
-npm run gh-pages
+npm run browser-build
 
 # navigate into the build output directory
 cd browser-build
