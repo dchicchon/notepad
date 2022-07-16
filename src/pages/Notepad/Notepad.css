@@ -1,6 +1,5 @@
 html {
   background-color: black;
-  /* overflow: hidden; */
 }
 body {
   margin: 0;
@@ -18,10 +17,6 @@ body {
   bottom: 0;
   width: -webkit-fill-available;
   height: auto;
-  /* min-height: 100vh; */
-
-  /* overflow: hidden; */
-  /* background-color: transparent; */
   outline: none;
   border: none;
   resize: none;

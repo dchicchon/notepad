@@ -4,7 +4,7 @@
 set -e
 
 # build
-npm run dist
+npm run gh-pages
 
 # navigate into the build output directory
 cd dist
