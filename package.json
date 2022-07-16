@@ -4,13 +4,14 @@
   "version": "0.0.0",
   "scripts": {
     "updateDeps": "ncu -u",
-    "deploy": "",
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite dev",
+    "browser-build": "vite build --mode browser-build",
+    "build": "vite build --mode production",
     "preview": "vite preview",
     "tauri": "tauri"
   },
   "dependencies": {
+    "@rollup/plugin-html": "^0.2.4",
     "@tauri-apps/api": "^1.0.2",
     "eslint": "^8.19.0",
     "eslint-plugin-react": "^7.30.1",

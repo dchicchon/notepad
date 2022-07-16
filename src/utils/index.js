@@ -1,4 +1,4 @@
-import { STORE_NAME } from '../utils/keys';
+import { STORE_NAME } from './keys';
 import { Store } from 'tauri-plugin-store-api';
 
 const store = new Store(STORE_NAME)
