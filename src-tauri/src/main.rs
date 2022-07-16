@@ -90,7 +90,7 @@ fn main() {
       let _window = WindowBuilder::new(
         app,
         "main",
-        tauri::WindowUrl::App("src/main/index.html".into()),
+        tauri::WindowUrl::App("notepad.html".into()),
       )
       .build();
       Ok(())
@@ -106,7 +106,7 @@ fn main() {
       let window = WindowBuilder::new(
         app,
         "main",
-        tauri::WindowUrl::App("src/main/index.html".into()),
+        tauri::WindowUrl::App("notepad.html".into()),
       )
       .menu(windows_menu)
       .build()?;

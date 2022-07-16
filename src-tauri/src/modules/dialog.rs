@@ -131,7 +131,7 @@ pub fn open_preferences(handle: &AppHandle) {
     let preferences_window = WindowBuilder::new(
         handle,
         "preferences",
-        tauri::WindowUrl::App("src/preferences/index.html".into()),
+        tauri::WindowUrl::App("preferences.html".into()),
     )
     .center()
     .inner_size(300.0, 250.0)

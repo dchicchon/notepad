@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { appWindow } from '@tauri-apps/api/window'
-import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../utils/keys';
+import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../../utils/keys';
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api';
-import './App.css'
-import { getKeyVal } from '../utils';
+import './Notepad.css'
+import { getKeyVal } from '../../utils/store';
 
 const selectedWindow = appWindow.label;
 const windowMap = {
