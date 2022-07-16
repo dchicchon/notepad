@@ -9,7 +9,7 @@ export default defineConfig(({ command, mode }) => {
   console.log('Mode:', mode);
   if (mode === 'browser-build') {
     return {
-      base: '/src/main',
+      base: '/tauri-notepad/',
       build: {
         rollupOptions: {
           input: {
