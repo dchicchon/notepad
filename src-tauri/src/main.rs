@@ -41,16 +41,23 @@ fn main() {
     Menu::new()
       .add_item(preferences)
       .add_native_item(MenuItem::Quit)
-      .add_native_item(MenuItem::Copy)
-      .add_native_item(MenuItem::Paste),
+
   );
   let submenu2 = Submenu::new(
     "File",
     Menu::new().add_item(open).add_item(save).add_item(new),
   );
+  let submenu3 = Submenu::new(
+    "Edit",
+    Menu::new()
+    .add_native_item(MenuItem::Undo)
+    .add_native_item(MenuItem::Redo)
+    .add_native_item(MenuItem::Cut)
+    .add_native_item(MenuItem::Copy)
+    .add_native_item(MenuItem::Paste),
+  );
 
-  let windows_menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2);
-  #[cfg(target_os = "macos")]
+  let windows_menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2).add_submenu(submenu3);
   let mac_menu = windows_menu.clone();
   #[cfg(target_os = "macos")]
   let app = tauri::Builder::default()
@@ -133,6 +140,9 @@ fn main() {
 
  
 
+  
+
+
   app.run(|app_handle, e| match e {
     // Application is ready (triggered only once)
     RunEvent::Ready => {
@@ -156,7 +166,7 @@ fn main() {
 
     RunEvent::WindowEvent {
       label,
-      event: WindowEvent::CloseRequested { api:_, .. },
+      event: WindowEvent::CloseRequested { api, .. },
       ..
     } => {
       println!("Label type: {}", label);
@@ -168,7 +178,7 @@ fn main() {
       }
     }
 
-    RunEvent::ExitRequested { api:_, .. } => {
+    RunEvent::ExitRequested { api, .. } => {
       println!("App is exiting");
       #[cfg(target_os = "macos")]
       api.prevent_exit();
