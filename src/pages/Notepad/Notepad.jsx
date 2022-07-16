@@ -16,7 +16,7 @@ const setTitle = (title) => {
   windowMap[selectedWindow].setTitle(title)
 }
 
-function App() {
+function Notepad() {
   const [ypadding, setYPadding] = useState(25);
   const [xpadding, setXPadding] = useState(25);
   const [fontSize, setFontSize] = useState(25);
@@ -152,4 +152,4 @@ function App() {
   )
 }
 
-export default App
+export default Notepad

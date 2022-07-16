@@ -7,12 +7,7 @@ import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../../util
 import './Preferences.css'
 import { invoke } from '@tauri-apps/api';
 
-
-// did this run twice?
-
-// TODO: Have a list of settings in here for notepad config
-function App() {
-
+function Preferences() {
     const [fontSize, setFontSize] = useState(12);
     const [fontFamily, setFontFamily] = useState("");
     const [fontFamilies, setFontFamilies] = useState([])
@@ -122,4 +117,4 @@ function App() {
     )
 }
 
-export default App;
+export default Preferences;
