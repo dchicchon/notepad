@@ -152,3 +152,27 @@ pub fn open_preferences(handle: &AppHandle) {
         let _result = main_window.emit("state_change", data);
     });
 }
+
+#[tauri::command]
+pub fn install_font(handle: &AppHandle) {
+    println!("OpenFile");
+    let new_handle = handle.clone();
+    FileDialogBuilder::new()
+        .add_filter("Font File", &["ttf"])
+        .pick_file(move |path_buf| {
+            match path_buf {
+                Some(p) => {
+                    let path = p.clone();
+                    let name_path = path.clone();
+
+                    let file_path = path.into_os_string().into_string().unwrap().to_string();
+                    let file_name = name_path.file_name().unwrap().to_str().unwrap().to_string();
+
+                    // make a copy of the font file in this app directory
+                    
+
+                }
+                _ => {}
+            };
+        });
+}

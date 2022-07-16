@@ -31,7 +31,6 @@ function App() {
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef(null);
 
-
   // setting cursor for input
   useEffect(() => {
     if (inputRef.current) {

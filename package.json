@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "updateDeps": "ncu -u",
+    "deploy": "",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
