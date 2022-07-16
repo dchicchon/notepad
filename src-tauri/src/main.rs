@@ -8,14 +8,14 @@ use std::env;
 mod modules;
 
 use modules::{
-  cmd::{db_insert, db_read},
+  cmd::{db_insert, db_read, get_font_families},
   database::Database,
   dialog::{new_file, open_file, open_preferences, save_file},
 };
 
 use tauri::{
-  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu,
-  WindowBuilder, WindowEvent,
+  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu, WindowBuilder,
+  WindowEvent,
 };
 
 use tauri_plugin_store::PluginBuilder;
@@ -40,17 +40,26 @@ fn main() {
     "Notepad",
     Menu::new()
       .add_item(preferences)
-      .add_native_item(MenuItem::Quit)
-      .add_native_item(MenuItem::Copy)
-      .add_native_item(MenuItem::Paste),
+      .add_native_item(MenuItem::Quit),
   );
   let submenu2 = Submenu::new(
     "File",
     Menu::new().add_item(open).add_item(save).add_item(new),
   );
+  let submenu3 = Submenu::new(
+    "Edit",
+    Menu::new()
+      .add_native_item(MenuItem::Undo)
+      .add_native_item(MenuItem::Redo)
+      .add_native_item(MenuItem::Cut)
+      .add_native_item(MenuItem::Copy)
+      .add_native_item(MenuItem::Paste),
+  );
 
-  let windows_menu = Menu::new().add_submenu(submenu1).add_submenu(submenu2);
-  #[cfg(target_os = "macos")]
+  let windows_menu = Menu::new()
+    .add_submenu(submenu1)
+    .add_submenu(submenu2)
+    .add_submenu(submenu3);
   let mac_menu = windows_menu.clone();
   #[cfg(target_os = "macos")]
   let app = tauri::Builder::default()
@@ -87,7 +96,7 @@ fn main() {
       Ok(())
     })
     .manage(Database(Default::default()))
-    .invoke_handler(tauri::generate_handler![db_insert, db_read])
+    .invoke_handler(tauri::generate_handler![db_insert, db_read, get_font_families])
     .build(tauri::generate_context!())
     .expect("error with app!");
   #[cfg(target_os = "windows")]
@@ -131,17 +140,15 @@ fn main() {
     .build(tauri::generate_context!())
     .expect("error with app!");
 
- 
-
   app.run(|app_handle, e| match e {
     // Application is ready (triggered only once)
     RunEvent::Ready => {
       let handle = app_handle.clone();
       let handle2 = app_handle.clone();
+      let handle3 = app_handle.clone();
       app_handle
         .global_shortcut_manager()
         .register("CmdOrCtrl+S", move || {
-          println!("Hotkey executed");
           // only open save dialog if there is no file path yet
           save_file(&handle);
         })
@@ -152,11 +159,17 @@ fn main() {
           open_file(&handle2);
         })
         .unwrap();
+      app_handle
+        .global_shortcut_manager()
+        .register("CmdOrCtrl+N", move || {
+          new_file(&handle3);
+        })
+        .unwrap();
     }
 
     RunEvent::WindowEvent {
       label,
-      event: WindowEvent::CloseRequested { api:_, .. },
+      event: WindowEvent::CloseRequested { api, .. },
       ..
     } => {
       println!("Label type: {}", label);
@@ -168,7 +181,7 @@ fn main() {
       }
     }
 
-    RunEvent::ExitRequested { api:_, .. } => {
+    RunEvent::ExitRequested { api, .. } => {
       println!("App is exiting");
       #[cfg(target_os = "macos")]
       api.prevent_exit();

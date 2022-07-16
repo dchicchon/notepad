@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { appWindow } from '@tauri-apps/api/window'
-import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, STORE_NAME } from '../utils/keys';
+import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY, STORE_NAME } from '../utils/keys';
 import { Store } from 'tauri-plugin-store-api';
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api';
@@ -24,12 +24,12 @@ function App() {
   const [xpadding, setXPadding] = useState(25);
   const [fontSize, setFontSize] = useState(25);
   const [backgroundColor, setBackgroundColor] = useState('#282c34');
+  const [fontFamily, setFontFamily] = useState('');
   const [fontColor, setFontColor] = useState('white');
   const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
   const [text, setText] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef(null);
-
 
   // setting cursor for input
   useEffect(() => {
@@ -46,14 +46,17 @@ function App() {
       let fontSize = await getKeyVal(FONT_SIZE);
       let fontColor = await getKeyVal(FONT_COLOR);
       let backgroundColor = await getKeyVal(BACKGROUND_COLOR);
+      let fontFamily = await getKeyVal(FONT_FAMILY);
 
       console.log('FontSize:', fontSize);
       console.log('FontColor:', fontColor);
       console.log('BackgroundColor:', backgroundColor);
+      console.log('FontFamily:', fontFamily);
 
       if (fontSize) setFontSize(fontSize);
       if (fontColor) setFontColor(fontColor);
       if (backgroundColor) setBackgroundColor(backgroundColor);
+      if (fontFamily) setBackgroundColor(fontFamily);
 
       const unlisten = await listen('state_change', async (msg) => {
         console.log('Retrieved a state change');
@@ -85,6 +88,10 @@ function App() {
             case BACKGROUND_COLOR:
               let backgroundColor = await getKeyVal(BACKGROUND_COLOR)
               setBackgroundColor(backgroundColor);
+              break;
+            case FONT_FAMILY:
+              let fontFamily = await getKeyVal(FONT_FAMILY);
+              setFontFamily(fontFamily);
               break;
           }
           // get the name of setting, retrieve the key from store
@@ -122,17 +129,22 @@ function App() {
         console.log(err);
       })
   }
+  const getStyles = () => {
+    // based on whatever is in fontFamily, enter in some stuff;
+    return {
+      fontFamily: "",
+      color: fontColor,
+      backgroundColor,
+      fontSize: `${fontSize}px`,
+      padding: `${ypadding}px ${xpadding}px`,
+    }
+  }
 
   return (
     <textarea
       ref={inputRef}
       className='paper'
-      style={{
-        color: fontColor,
-        backgroundColor,
-        fontSize: `${fontSize}px`,
-        padding: `${ypadding}px ${xpadding}px`,
-      }}
+      style={getStyles()}
       value={text}
       onChange={(e) => updateText({
         text: e.target.value,
