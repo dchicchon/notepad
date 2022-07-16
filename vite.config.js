@@ -5,10 +5,8 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/",
   build: {
     rollupOptions: {
-      // makeAbsoluteExternalsRelative: false,
       input: {
         main: fileURLToPath(new URL('./src/main/index.html', import.meta.url)),
         preferences: fileURLToPath(new URL('./src/preferences/index.html', import.meta.url))
