@@ -13,4 +13,4 @@ This is a basic notepad created with tauri
 # Todo
 - Be able to open new windows by pressing `new file` option in menu.
 - maybe add a menu where you can see all of your text files
-- autosave (when text changed on saved file, run setTimeout to save automatically) q
+- autosave (when text changed on saved file, run setTimeout to save automatically) 

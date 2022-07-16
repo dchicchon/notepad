@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { appWindow } from '@tauri-apps/api/window'
-import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY, STORE_NAME } from '../utils/keys';
-import { Store } from 'tauri-plugin-store-api';
+import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../utils/keys';
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api';
 import './App.css'
@@ -12,8 +11,6 @@ const selectedWindow = appWindow.label;
 const windowMap = {
   [selectedWindow]: appWindow
 }
-
-const store = new Store(STORE_NAME);
 
 const setTitle = (title) => {
   windowMap[selectedWindow].setTitle(title)
