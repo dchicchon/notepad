@@ -16,10 +16,8 @@ export default defineConfig(({ command, mode }) => {
             notepad: resolve(__dirname, 'notepad.html'),
             preferences: resolve(__dirname, 'preferences.html')
           },
-          output: {
-            dir: "browser-build"
-          }
         },
+        outDir: "browser-build"
       },
       plugins: [react()],
     }
