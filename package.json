@@ -6,6 +6,7 @@
     "updateDeps": "ncu -u",
     "dev": "vite",
     "build": "vite build",
+    "gh-pages": "vite build --mode browser-build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
