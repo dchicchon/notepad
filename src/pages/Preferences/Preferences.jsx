@@ -4,8 +4,8 @@ import { appWindow } from '@tauri-apps/api/window';
 import { emit } from '@tauri-apps/api/event';
 import { getKeyVal, setKeyVal } from '../../utils/store';
 import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../../utils/keys';
-import './Preferences.css'
 import { invoke } from '@tauri-apps/api';
+import './Preferences.css'
 
 function Preferences() {
     const [fontSize, setFontSize] = useState(12);
@@ -15,31 +15,31 @@ function Preferences() {
     const [backgroundColor, setBackgroundColor] = useState('#282c34')
 
     useEffect(() => {
-        appWindow.setTitle('Preferences')
-        async function getPreferences() {
-            console.log('Get Preferences');
-            let fontSize = await getKeyVal(FONT_SIZE);
-            let fontColor = await getKeyVal(FONT_COLOR);
-            let backgroundColor = await getKeyVal(BACKGROUND_COLOR);
-            let fontFamily = await getKeyVal(FONT_FAMILY);
-            // invoke to get the fonts we have already in the app directory
-            let fontFamilies = await invoke('get_font_families');
-
-            console.log('FontSize:', fontSize);
-            console.log('FontColor:', fontColor);
-            console.log('BackgroundColor:', backgroundColor);
-            console.log('FontFamily:', fontFamily);
-            console.log('FontFamilies:', fontFamilies);
-
-            if (fontSize) setFontSize(fontSize);
-            if (fontColor) setFontColor(fontColor);
-            if (backgroundColor) setBackgroundColor(backgroundColor);
-            if (fontFamily) setFontFamily(fontFamily);
-            if (fontFamilies) setFontFamilies(fontFamilies);
-
-        }
         getPreferences()
     }, [])
+
+    const getPreferences = async () => {
+        console.log('Get Preferences');
+        appWindow.setTitle('Preferences')
+        let fontSize = await getKeyVal(FONT_SIZE);
+        let fontColor = await getKeyVal(FONT_COLOR);
+        let backgroundColor = await getKeyVal(BACKGROUND_COLOR);
+        let fontFamily = await getKeyVal(FONT_FAMILY);
+        // invoke to get the fonts we have already in the app directory
+        let fontFamilies = await invoke('get_fonts');
+
+        console.log('FontSize:', fontSize);
+        console.log('FontColor:', fontColor);
+        console.log('BackgroundColor:', backgroundColor);
+        console.log('FontFamily:', fontFamily);
+        console.log('FontFamilies:', fontFamilies);
+
+        if (fontSize) setFontSize(fontSize);
+        if (fontColor) setFontColor(fontColor);
+        if (backgroundColor) setBackgroundColor(backgroundColor);
+        if (fontFamily) setFontFamily(fontFamily);
+        if (fontFamilies) setFontFamilies(fontFamilies);
+    }
 
     const handleChange = async (e) => {
         const { name, value } = e.target;
@@ -67,7 +67,7 @@ function Preferences() {
                 await setKeyVal(FONT_FAMILY, value)
                 emit("update-setting", FONT_FAMILY)
                 break;
-            default: 
+            default:
                 break;
         }
     }
@@ -107,8 +107,11 @@ function Preferences() {
                 </select>
             </div>
             <div className='input-group'>
-                <label>Font Family (check https://fonts.google.com/ for fonts to import)</label>
+                <label>Font Family</label>
                 <select name={FONT_FAMILY} value={fontFamily} onChange={handleChange}>
+                    {fontFamilies.map((family, index) => (
+                        <option key={index}>{family}</option>
+                    ))}
                     {/* get the available fonts on the backend */}
                 </select>
             </div>

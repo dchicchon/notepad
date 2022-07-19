@@ -22,7 +22,9 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "resources": [],
+      "resources": [
+        "../fonts/Roboto-Black.ttf"
+      ],
       "externalBin": [],
       "copyright": "",
       "category": "DeveloperTool",
@@ -56,17 +58,14 @@
         "save": true
       },
       "fs": {
-        "scope": {
-          "allow": [
-            "$APP/db/**",
-            "$DOWNLOAD/**",
-            "$RESOURCE/**",
-            "$DOCUMENT/**"
-          ],
-          "deny": [
-            "$APP/db/*.stronghold"
-          ]
-        }
+        "all": true
+      },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": [
+          "*"
+        ]
       }
     },
     "security": {
