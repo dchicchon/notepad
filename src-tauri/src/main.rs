@@ -3,12 +3,12 @@
   windows_subsystem = "windows"
 )]
 
-use std::env;
+use std::{env, fs::read_dir};
 
 mod modules;
 
 use modules::{
-  cmd::{db_insert, db_read, get_font_families},
+  cmd::{db_insert, db_read, get_fonts},
   database::Database,
   dialog::{new_file, open_file, open_preferences, save_file},
 };
@@ -87,29 +87,31 @@ fn main() {
       _ => {}
     })
     .setup(|app| {
-      let _window = WindowBuilder::new(
-        app,
-        "main",
-        tauri::WindowUrl::App("notepad.html".into()),
-      )
-      .build();
+      // check resource directory of app. check if fonts are installed yet
+      // let app_dir = app.path_resolver().app_dir().unwrap();
+      let resource_dir = app.path_resolver().resource_dir().unwrap();
+      for path in read_dir(resource_dir).unwrap() {
+        println!("Name: {}", path.unwrap().path().display());
+      }
+      // for path in read_dir(app_dir).unwrap() {
+      //   println!("Name: {}", path.unwrap().path().display());
+      // }
+      let _window =
+        WindowBuilder::new(app, "main", tauri::WindowUrl::App("notepad.html".into())).build();
       Ok(())
     })
     .manage(Database(Default::default()))
-    .invoke_handler(tauri::generate_handler![db_insert, db_read, get_font_families])
+    .invoke_handler(tauri::generate_handler![db_insert, db_read, get_fonts])
     .build(tauri::generate_context!())
     .expect("error with app!");
   #[cfg(target_os = "windows")]
   let app = tauri::Builder::default()
     .plugin(PluginBuilder::default().build())
     .setup(|app| {
-      let window = WindowBuilder::new(
-        app,
-        "main",
-        tauri::WindowUrl::App("notepad.html".into()),
-      )
-      .menu(windows_menu)
-      .build()?;
+      // check resource directory of app. check if fonts are installed yet
+      let window = WindowBuilder::new(app, "main", tauri::WindowUrl::App("notepad.html".into()))
+        .menu(windows_menu)
+        .build()?;
 
       let window_2 = window.clone();
       window.on_menu_event(move |event| match event.menu_item_id() {

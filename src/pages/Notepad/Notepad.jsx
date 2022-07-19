@@ -4,8 +4,10 @@ import { appWindow } from '@tauri-apps/api/window'
 import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../../utils/keys';
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api';
-import './Notepad.css'
+import { appDir, join } from '@tauri-apps/api/path';
+import { convertFileSrc } from '@tauri-apps/api/tauri';
 import { getKeyVal } from '../../utils/store';
+import './Notepad.css'
 
 const selectedWindow = appWindow.label;
 const windowMap = {
@@ -21,23 +23,17 @@ function Notepad() {
   const [xpadding, setXPadding] = useState(25);
   const [fontSize, setFontSize] = useState(25);
   const [backgroundColor, setBackgroundColor] = useState('#282c34');
-  const [fontFamily, setFontFamily] = useState('');
+  const [fontFamily, setFontFamily] = useState('Roboto-Black.ttf');
   const [fontColor, setFontColor] = useState('white');
   const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
   const [text, setText] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef(null);
 
-  // setting cursor for input
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.setSelectionRange(cursor, cursor);
-    }
-  }, [inputRef, text])
-
   // watching app state changes, setting initial settings
   useEffect(() => {
     async function init() {
+      console.log('init');
       setTitle("Untitled")
       // get preferences from store
       let fontSize = await getKeyVal(FONT_SIZE);
@@ -53,7 +49,8 @@ function Notepad() {
       if (fontSize) setFontSize(fontSize);
       if (fontColor) setFontColor(fontColor);
       if (backgroundColor) setBackgroundColor(backgroundColor);
-      if (fontFamily) setBackgroundColor(fontFamily);
+      if (fontFamily) setFontFamily(fontFamily);
+      // if there is no font family, set one by default
 
       const unlisten = await listen('state_change', async (msg) => {
         console.log('Retrieved a state change');
@@ -100,6 +97,15 @@ function Notepad() {
     init();
   }, [])
 
+  // setting cursor for input
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.setSelectionRange(cursor, cursor);
+    }
+  }, [inputRef, text])
+
+
+
   const updateText = ({ text, event }) => {
     if (event) {
       setCursor(event.target.selectionStart)
@@ -126,10 +132,11 @@ function Notepad() {
         console.log(err);
       })
   }
+
   const getStyles = () => {
     // based on whatever is in fontFamily, enter in some stuff;
     return {
-      fontFamily: "",
+      fontFamily: fontFamily,
       color: fontColor,
       backgroundColor,
       fontSize: `${fontSize}px`,
