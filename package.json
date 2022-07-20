@@ -16,11 +16,9 @@
     "@tauri-apps/api": "^1.0.2",
     "eslint": "^8.19.0",
     "eslint-plugin-react": "^7.30.1",
-    "hotkeys-js": "^3.9.4",
     "npm-check-updates": "^15.3.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hyper-modal": "^1.2.16",
     "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#dev"
   },
   "devDependencies": {
