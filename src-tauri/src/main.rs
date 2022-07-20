@@ -163,46 +163,50 @@ fn main() {
       ..
     } => {
       // check if the current file is untitled
-      let handle = app_handle.clone();
-      let state: State<Database> = app_handle.state();
-      let text = state.0.lock().unwrap().get("text").cloned();
-      let file = state.0.lock().unwrap().get("file").cloned(); // getting file from database
+      if label == "main" {
+        let handle = app_handle.clone();
+        let state: State<Database> = app_handle.state();
+        let text = state.0.lock().unwrap().get("text").cloned(); // getting text from database
+        let file = state.0.lock().unwrap().get("file").cloned(); // getting file from database
 
-      let path = match file {
-        Some(p) => p,
-        _ => String::new(),
-      };
-      let current_text = match text {
-        Some(p) => p,
-        _ => String::new(),
-      };
+        // unwrap to check
+        let path = match file {
+          Some(p) => p,
+          _ => String::new(),
+        };
+        let current_text = match text {
+          Some(p) => p,
+          _ => String::new(),
+        };
 
-      if path.len() == 0 && current_text.len() != 0 {
-        api.prevent_close();
-        // let mut data = HashMap::new();
-        // data.insert("ask".to_string(), true);
-        // let _result = handle.emit_all("state_change", data);
-        let window = app_handle.get_window("main").unwrap();
-        let window_clone = window.clone();
-        ask(
-          Some(&window),
-          "Unsaved file",
-          "File is not saved, would you like to save before closing?",
-          move |answer| {
-            if answer {
-              // run the save function then close
-              save_file(&handle, Some(true));
-            } else {
-              let _result = window_clone.close();
-            }
-          },
-        );
-      } else {
-        #[cfg(target_os = "macos")]
-        if label == "main" {
-          let window = app_handle.get_window("main").unwrap();
+        if path.len() == 0 && current_text.len() != 0 {
           api.prevent_close();
-          window.hide().unwrap();
+          let window = app_handle.get_window("main").unwrap();
+          let window_clone = window.clone();
+          ask(
+            Some(&window),
+            "Unsaved file",
+            "File is not saved, would you like to save before closing?",
+            move |answer| {
+              if answer {
+                // run the save function then close
+                save_file(&handle, Some(true));
+              } else {
+                #[cfg(target_os = "macos")]
+                api.prevent_close();
+                window_clone.hide().unwrap();
+                #[cfg(target_os = "windows")]
+                let _result = window_clone.close();
+              }
+            },
+          );
+        } else {
+          #[cfg(target_os = "macos")]
+          {
+            let window = app_handle.get_window("main").unwrap();
+            api.prevent_close();
+            window.hide().unwrap();
+          }
         }
       }
     }

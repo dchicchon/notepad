@@ -85,7 +85,14 @@ pub fn save_file(handle: &AppHandle, window_closing: Option<bool>) {
                     let _result = file.write_all(&text_bytes);
 
                     let main_window = app_handle.get_window("main").unwrap();
-                    let _result = main_window.close();
+                    #[cfg(target_os = "macos")]
+                    {
+                        let _result = main_window.hide();
+                    }
+                    #[cfg(target_os = "windows")]
+                    {
+                        let _result = main_window.close();
+                    }
                 }
                 _ => {}
             });
