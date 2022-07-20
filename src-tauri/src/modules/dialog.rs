@@ -16,7 +16,6 @@ struct Payload {
 
 // dialog to open new file. might consider creating new windows in the future
 pub fn open_file(handle: &AppHandle) {
-    println!("OpenFile");
     let new_handle = handle.clone();
     FileDialogBuilder::new()
         .add_filter("Text", &["txt"])
@@ -50,52 +49,72 @@ fn get_path(option: Option<String>) -> String {
 }
 
 // save file. if the path is the same then just overwrite the previous and no dialog
-pub fn save_file(handle: &AppHandle) {
+pub fn save_file(handle: &AppHandle, window_closing: Option<bool>) {
     let app_handle = handle.clone();
     let state: State<Database> = handle.state();
     let path = state.0.lock().unwrap().get("file").cloned();
     let unwrapped_path = get_path(path);
-    // if path is not empty
+
+    // if file has been saved before
     if unwrapped_path != "" {
-        println!("There is a path buf!");
         // turn the path into a pathbuf
         let mut set_path = PathBuf::new();
         set_path.push(unwrapped_path);
-        println!("the path: {:?}", set_path);
         let state: State<Database> = app_handle.state();
         let text = state.0.lock().unwrap().get("text").cloned().unwrap();
-        println!("the text to save: {}", text);
         let mut file = File::create(set_path).unwrap();
         let text_bytes = text.as_bytes();
         let _result = file.write_all(text_bytes);
         return;
     }
-    FileDialogBuilder::new()
-        .add_filter("Text", &["txt"])
-        .save_file(move |path_buf| match path_buf {
-            Some(p) => {
-                // println!("the path: {:?}", p);
-                let path = p.clone();
-                let name_path = path.clone();
+    // Check if window is closing
+    if window_closing.unwrap() {
+        FileDialogBuilder::new()
+            .add_filter("Text", &["txt"])
+            .save_file(move |path_buf| match path_buf {
+                Some(p) => {
+                    let path = p.clone();
 
-                let file_name = name_path.file_name().unwrap().to_str().unwrap().to_string();
-                let file_path = path.into_os_string().into_string().unwrap().to_string();
+                    let file_path = path.into_os_string().into_string().unwrap().to_string();
 
-                // println!("New file path: {}", file_path);
-                let state: State<Database> = app_handle.state();
-                let text = state.0.lock().unwrap().get("text").cloned().unwrap();
-                let text_bytes = text.as_bytes();
+                    let state: State<Database> = app_handle.state();
+                    let text = state.0.lock().unwrap().get("text").cloned().unwrap(); // getting text from our database
+                    let text_bytes = text.as_bytes();
 
-                let mut file = File::create(&file_path).unwrap();
-                let _result = file.write_all(&text_bytes);
+                    let mut file = File::create(&file_path).unwrap();
+                    let _result = file.write_all(&text_bytes);
 
-                let mut data = HashMap::new();
-                data.insert("path".to_string(), file_path);
-                data.insert("name".to_string(), file_name);
-                let _result = app_handle.emit_all("state_change", data); // TODO: check for errors
-            }
-            _ => {}
-        });
+                    let main_window = app_handle.get_window("main").unwrap();
+                    let _result = main_window.close();
+                }
+                _ => {}
+            });
+    } else {
+        FileDialogBuilder::new()
+            .add_filter("Text", &["txt"])
+            .save_file(move |path_buf| match path_buf {
+                Some(p) => {
+                    let path = p.clone();
+                    let name_path = path.clone();
+
+                    let file_name = name_path.file_name().unwrap().to_str().unwrap().to_string();
+                    let file_path = path.into_os_string().into_string().unwrap().to_string();
+
+                    let state: State<Database> = app_handle.state();
+                    let text = state.0.lock().unwrap().get("text").cloned().unwrap(); // getting text from our database
+                    let text_bytes = text.as_bytes();
+
+                    let mut file = File::create(&file_path).unwrap();
+                    let _result = file.write_all(&text_bytes);
+
+                    let mut data = HashMap::new();
+                    data.insert("path".to_string(), file_path);
+                    data.insert("name".to_string(), file_name);
+                    let _result = app_handle.emit_all("state_change", data); // TODO: check for errors
+                }
+                _ => {}
+            });
+    }
 }
 
 // opening a new file
@@ -120,8 +139,6 @@ fn window_exists(label: &str, handle: &AppHandle) -> bool {
 
 // open preferences window
 pub fn open_preferences(handle: &AppHandle) {
-    println!("Open preferences");
-
     let main_window = handle.get_window("main").unwrap();
     let test_handle = handle.clone();
     if window_exists("preferences", &test_handle) {
@@ -144,35 +161,9 @@ pub fn open_preferences(handle: &AppHandle) {
     // make sure theres no menu for preferences?
 
     let _id = preferences_window.listen("update-setting", move |event| {
-        println!("Got event from preferences window, emit to main");
         let payload = event.payload().unwrap(); // turn this into a hashmap?
-        println!("Payload: {:?}", payload);
         let mut data = HashMap::new();
         data.insert("setting", payload);
         let _result = main_window.emit("state_change", data);
     });
-}
-
-#[tauri::command]
-pub fn install_font(handle: &AppHandle) {
-    println!("OpenFile");
-    let new_handle = handle.clone();
-    FileDialogBuilder::new()
-        .add_filter("Font File", &["ttf"])
-        .pick_file(move |path_buf| {
-            match path_buf {
-                Some(p) => {
-                    let path = p.clone();
-                    let name_path = path.clone();
-
-                    let file_path = path.into_os_string().into_string().unwrap().to_string();
-                    let file_name = name_path.file_name().unwrap().to_str().unwrap().to_string();
-
-                    // make a copy of the font file in this app directory
-                    
-
-                }
-                _ => {}
-            };
-        });
 }

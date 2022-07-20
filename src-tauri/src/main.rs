@@ -3,7 +3,7 @@
   windows_subsystem = "windows"
 )]
 
-use std::{env, fs::read_dir};
+use std::{collections::HashMap, env};
 
 mod modules;
 
@@ -14,13 +14,12 @@ use modules::{
 };
 
 use tauri::{
-  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, Submenu, WindowBuilder,
-  WindowEvent,
+  api::dialog::{ask, confirm, MessageDialogBuilder, MessageDialogButtons, MessageDialogKind},
+  CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, State, Submenu,
+  WindowBuilder, WindowEvent,
 };
 
 use tauri_plugin_store::PluginBuilder;
-
-// use std::{fs::File, io::Read};
 
 // the payload type must implement `Serialize` and `Clone`.
 #[derive(Clone, serde::Serialize)]
@@ -77,25 +76,15 @@ fn main() {
       }
       "save" => {
         let handle = event.window().app_handle();
-        save_file(&handle);
+        save_file(&handle, Some(false));
       }
       "new" => {
-        println!("New menu item selected");
         let handle = event.window().app_handle();
         new_file(&handle);
       }
       _ => {}
     })
     .setup(|app| {
-      // check resource directory of app. check if fonts are installed yet
-      // let app_dir = app.path_resolver().app_dir().unwrap();
-      let resource_dir = app.path_resolver().resource_dir().unwrap();
-      for path in read_dir(resource_dir).unwrap() {
-        println!("Name: {}", path.unwrap().path().display());
-      }
-      // for path in read_dir(app_dir).unwrap() {
-      //   println!("Name: {}", path.unwrap().path().display());
-      // }
       let _window =
         WindowBuilder::new(app, "main", tauri::WindowUrl::App("notepad.html".into())).build();
       Ok(())
@@ -129,7 +118,6 @@ fn main() {
           save_file(&handle);
         }
         "new" => {
-          println!("New menu item selected");
           let handle = window_2.app_handle();
           new_file(&handle);
         }
@@ -152,7 +140,7 @@ fn main() {
         .global_shortcut_manager()
         .register("CmdOrCtrl+S", move || {
           // only open save dialog if there is no file path yet
-          save_file(&handle);
+          save_file(&handle, Some(false));
         })
         .unwrap();
       app_handle
@@ -174,17 +162,52 @@ fn main() {
       event: WindowEvent::CloseRequested { api, .. },
       ..
     } => {
-      println!("Label type: {}", label);
-      #[cfg(target_os = "macos")]
-      if label == "main" {
-        let window = app_handle.get_window("main").unwrap();
+      // check if the current file is untitled
+      let handle = app_handle.clone();
+      let state: State<Database> = app_handle.state();
+      let text = state.0.lock().unwrap().get("text").cloned();
+      let file = state.0.lock().unwrap().get("file").cloned(); // getting file from database
+
+      let path = match file {
+        Some(p) => p,
+        _ => String::new(),
+      };
+      let current_text = match text {
+        Some(p) => p,
+        _ => String::new(),
+      };
+
+      if path.len() == 0 && current_text.len() != 0 {
         api.prevent_close();
-        window.hide().unwrap();
+        // let mut data = HashMap::new();
+        // data.insert("ask".to_string(), true);
+        // let _result = handle.emit_all("state_change", data);
+        let window = app_handle.get_window("main").unwrap();
+        let window_clone = window.clone();
+        ask(
+          Some(&window),
+          "Unsaved file",
+          "File is not saved, would you like to save before closing?",
+          move |answer| {
+            if answer {
+              // run the save function then close
+              save_file(&handle, Some(true));
+            } else {
+              let _result = window_clone.close();
+            }
+          },
+        );
+      } else {
+        #[cfg(target_os = "macos")]
+        if label == "main" {
+          let window = app_handle.get_window("main").unwrap();
+          api.prevent_close();
+          window.hide().unwrap();
+        }
       }
     }
 
     RunEvent::ExitRequested { api, .. } => {
-      println!("App is exiting");
       #[cfg(target_os = "macos")]
       api.prevent_exit();
     }

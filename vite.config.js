@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import { terser } from 'rollup-plugin-terser'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
-  console.log('Command:', command);
-  console.log('Mode:', mode);
   if (mode === 'browser-build') {
     return {
       base: '/notepad/',
@@ -19,7 +18,7 @@ export default defineConfig(({ command, mode }) => {
         },
         outDir: "browser-build"
       },
-      plugins: [react()],
+      plugins: [react(), terser()],
     }
   }
   return {
@@ -35,6 +34,6 @@ export default defineConfig(({ command, mode }) => {
         },
       },
     },
-    plugins: [react()],
+    plugins: [react(), terser()],
   }
 })

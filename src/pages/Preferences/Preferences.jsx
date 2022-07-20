@@ -110,9 +110,8 @@ function Preferences() {
                 <label>Font Family</label>
                 <select name={FONT_FAMILY} value={fontFamily} onChange={handleChange}>
                     {fontFamilies.map((family, index) => (
-                        <option key={index}>{family}</option>
+                        <option key={index} style={{ fontFamily: family }}>{family}</option>
                     ))}
-                    {/* get the available fonts on the backend */}
                 </select>
             </div>
 

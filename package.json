@@ -20,11 +20,13 @@
     "npm-check-updates": "^15.3.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hyper-modal": "^1.2.16",
     "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#dev"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.4",
     "@vitejs/plugin-react": "^2.0.0",
+    "rollup-plugin-terser": "^7.0.2",
     "vite": "^3.0.0"
   }
 }
