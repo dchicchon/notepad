@@ -22,9 +22,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "resources": [
-        "../fonts/Roboto-Black.ttf"
-      ],
+      "resources": [],
       "externalBin": [],
       "copyright": "",
       "category": "DeveloperTool",

@@ -1,13 +1,11 @@
-
 import React, { useState, useEffect, useRef } from 'react'
 import { appWindow } from '@tauri-apps/api/window'
 import { FONT_COLOR, FONT_SIZE, BACKGROUND_COLOR, FONT_FAMILY } from '../../utils/keys';
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api';
-import { appDir, join } from '@tauri-apps/api/path';
-import { convertFileSrc } from '@tauri-apps/api/tauri';
 import { getKeyVal } from '../../utils/store';
 import './Notepad.css'
+// import Modal from '../../components/Modal/Modal';
 
 const selectedWindow = appWindow.label;
 const windowMap = {
@@ -18,14 +16,23 @@ const setTitle = (title) => {
   windowMap[selectedWindow].setTitle(title)
 }
 
+// const checkSave = async (text) => {
+//   console.log('check ')
+//   const databaseText = await invoke("db_read", { key: "text" });
+//   console.log(text);
+//   console.log(databaseText);
+// }
+
 function Notepad() {
   const [ypadding, setYPadding] = useState(25);
   const [xpadding, setXPadding] = useState(25);
   const [fontSize, setFontSize] = useState(25);
   const [backgroundColor, setBackgroundColor] = useState('#282c34');
-  const [fontFamily, setFontFamily] = useState('Roboto-Black.ttf');
+  const [fontFamily, setFontFamily] = useState('system-ui');
   const [fontColor, setFontColor] = useState('white');
+  const [saved, setSaved] = useState(false);
   const [currentFile, setCurrentFile] = useState({ path: null, name: 'Untitled' });
+  const [showModal, setShowModal] = useState(false);
   const [text, setText] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef(null);
@@ -63,6 +70,7 @@ function Notepad() {
           });
         }
         if (msg.payload.name) {
+          console.log('new name');
           let newFile = {
             path: msg.payload.path,
             name: msg.payload.name
@@ -90,7 +98,6 @@ function Notepad() {
           }
           // get the name of setting, retrieve the key from store
         }
-        console.log(msg.payload);
       })
       return unlisten;
     }
@@ -104,11 +111,11 @@ function Notepad() {
     }
   }, [inputRef, text])
 
-
-
   const updateText = ({ text, event }) => {
     if (event) {
+      // additionally let backend know that the file is not saved yet
       setCursor(event.target.selectionStart)
+      // checkSave();
     }
     setText(text);
     invoke('db_insert', {
@@ -132,7 +139,6 @@ function Notepad() {
         console.log(err);
       })
   }
-
   const getStyles = () => {
     // based on whatever is in fontFamily, enter in some stuff;
     return {
