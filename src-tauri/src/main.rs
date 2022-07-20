@@ -115,7 +115,7 @@ fn main() {
         }
         "save" => {
           let handle = window_2.app_handle();
-          save_file(&handle);
+          save_file(&handle, Some(false));
         }
         "new" => {
           let handle = window_2.app_handle();
