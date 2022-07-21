@@ -8,6 +8,7 @@ import { invoke } from '@tauri-apps/api';
 import './Preferences.css'
 
 function Preferences() {
+    const [size, setSize] = useState(0);
     const [fontSize, setFontSize] = useState(12);
     const [fontFamily, setFontFamily] = useState("");
     const [fontFamilies, setFontFamilies] = useState([])
@@ -63,6 +64,7 @@ function Preferences() {
                 emit("update-setting", BACKGROUND_COLOR)
                 break;
             case FONT_FAMILY:
+                setSize(0);
                 setFontFamily(value);
                 await setKeyVal(FONT_FAMILY, value)
                 emit("update-setting", FONT_FAMILY)
@@ -108,7 +110,12 @@ function Preferences() {
             </div>
             <div className='input-group'>
                 <label>Font Family</label>
-                <select name={FONT_FAMILY} value={fontFamily} onChange={handleChange}>
+                <select size={size} name={FONT_FAMILY}
+                    onMouseDown={() => setSize(3)}
+                    onBlur={() => setSize(0)}
+                    value={fontFamily}
+                    onChange={handleChange}
+                >
                     {fontFamilies.map((family, index) => (
                         <option key={index} style={{ fontFamily: family }}>{family}</option>
                     ))}
