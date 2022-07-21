@@ -3,7 +3,7 @@
   windows_subsystem = "windows"
 )]
 
-use std::{collections::HashMap, env};
+use std::env;
 
 mod modules;
 
@@ -14,7 +14,7 @@ use modules::{
 };
 
 use tauri::{
-  api::dialog::{ask, confirm, MessageDialogBuilder, MessageDialogButtons, MessageDialogKind},
+  api::dialog::{ask},
   CustomMenuItem, GlobalShortcutManager, Manager, Menu, MenuItem, RunEvent, State, Submenu,
   WindowBuilder, WindowEvent,
 };
