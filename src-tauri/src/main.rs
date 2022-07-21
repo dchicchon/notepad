@@ -126,7 +126,7 @@ fn main() {
       Ok(())
     })
     .manage(Database(Default::default()))
-    .invoke_handler(tauri::generate_handler![db_insert, db_read])
+    .invoke_handler(tauri::generate_handler![db_insert, db_read,get_fonts])
     .build(tauri::generate_context!())
     .expect("error with app!");
 
